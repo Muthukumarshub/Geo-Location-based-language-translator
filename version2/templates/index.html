@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+    integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+  <style>
+    body {
+      background-color: #f8f9fa;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2rem;
+    }
+
+    .container {
+      padding: 30px 15px;
+      font-size: small;
+
+    }
+
+    .box {
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      font-size: medium;
+    }
+
+    .location-info p {
+      font-size: 1rem;
+      margin: 5px 0;
+    }
+
+    .audio-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .audio-container button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 30px;
+      padding-left: 10px;
+    }
+
+    .translated-text {
+      display: flex;
+      align-items: center;
+    }
+
+    .text-container {
+      flex-grow: 1;
+    }
+
+    .translated-text button {
+      font-size: 30px;
+      margin-left: 10px;
+    }
+
+    #document {
+      display: inline-block;
+      padding: 10px 20px;
+      background: linear-gradient(90deg, #007bff, #6610f2);
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+      margin-top: 20px;
+    }
+
+    .container-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+    }
+
+    .arrow-container {
+      font-size: 50px;
+      padding: 0 20px;
+      color: #007bff;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    /* Media Queries for Responsiveness */
+    @media (max-width: 576px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .box {
+        width: 100%;
+      }
+
+      .audio-container button {
+        font-size: 24px;
+      }
+
+      .translated-text button {
+        font-size: 24px;
+      }
+
+      #document {
+        font-size: 14px;
+        padding: 8px 15px;
+      }
+
+      .arrow-container {
+        font-size: 30px;
+      }
+    }
+  </style>
+  <title>Geo-Location based language translator</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Geo-Location Based Language Translator</h1>
+    <div class="location-info">
+      <p><strong>Location:</strong> Your Location</p>
+      <p><strong>Latitude:</strong> <span id="latitudeValue"></span></p>
+      <p><strong>Longitude:</strong> <span id="longitudeValue"></span></p>
+      <p><strong>Language:</strong> <span id="languageValue">English</span></p>
+    </div>
+
+    <form method="POST" id="translateForm">
+      <div class="form-group">
+        <label for="text">Text to Translate:</label>
+        <textarea name="text" cols="20" rows="5" class="form-control box" id="text">{{ text if text }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="latitude">Latitude:</label>
+        <input type="text" name="latitude" id="latitude" class="form-control box" required>
+      </div>
+      <div class="form-group">
+        <label for="longitude">Longitude:</label>
+        <input type="text" name="longitude" id="longitude" class="form-control box" required>
+      </div>
+      <input type="hidden" name="language" id="language">
+      <button type="button" class="btn btn-primary" onclick="fetchRegionLanguage()">Detect Language</button>
+      <button type="submit" class="btn btn-success">Translate!</button>
+      <a href="http://127.0.0.1:5000" id="document">Document Translator</a>
+    </form>
+
+    {% if translated_text %}
+    <div class="container-box">
+      <!-- Original Text Box -->
+      <div class="box">
+        <h3>Original Text:</h3>
+        <p>{{ original_text }}</p>
+      </div>
+
+      <!-- Arrow Icon -->
+      <div class="arrow-container">
+        &#8594;
+      </div>
+
+      <!-- Translated Text Box with Speaker Icon -->
+      <div class="box translated-text">
+        <div class="text-container">
+          <h3>Translated Text:</h3>
+          <p>{{ translated_text }}</p>
+        </div>
+        <button type="button" onclick="playAudio()">🔊</button>
+        <audio id="audio" src="{{ url_for('static', filename='output_audio.wav') }}?{{ timestamp }}"></audio>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function fetchRegionLanguage() {
+      const latitude = document.getElementById("latitude").value;
+      const longitude = document.getElementById("longitude").value;
+
+      if (!latitude || !longitude) {
+        alert("Please enter both latitude and longitude.");
+        return;
+      }
+
+      const apiKey = '5b88d7834d6947b990eec142a73c173a';
+      const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const state = data.results[0].components.state;
+          const country = data.results[0].components.country;
+          const languageMapping = {
+            'Andhra Pradesh': { code: 'te', name: 'Telugu' },
+            'Arunachal Pradesh': { code: 'hi', name: 'Hindi' },
+            'Assam': { code: 'as', name: 'Assamese' },
+            'Bihar': { code: 'hi', name: 'Hindi' },
+            'Chhattisgarh': { code: 'hi', name: 'Hindi' },
+            'Goa': { code: 'mr', name: 'Marathi' },
+            'Gujarat': { code: 'gu', name: 'Gujarati' },
+            'Haryana': { code: 'hi', name: 'Hindi' },
+            'Himachal Pradesh': { code: 'hi', name: 'Hindi' },
+            'Jharkhand': { code: 'hi', name: 'Hindi' },
+            'Karnataka': { code: 'kn', name: 'Kannada' },
+            'Kerala': { code: 'ml', name: 'Malayalam' },
+            'Madhya Pradesh': { code: 'hi', name: 'Hindi' },
+            'Maharashtra': { code: 'mr', name: 'Marathi' },
+            'Manipur': { code: 'man', name: 'Manipuri' },
+            'Meghalaya': { code: 'en', name: 'English' },
+            'Mizoram': { code: 'en', name: 'English' },
+            'Nagaland': { code: 'en', name: 'English' },
+            'Odisha': { code: 'or', name: 'Odia' },
+            'Punjab': { code: 'pa', name: 'Punjabi' },
+            'Rajasthan': { code: 'hi', name: 'Hindi' },
+            'Sikkim': { code: 'en', name: 'English' },
+            'Tamil Nadu': { code: 'ta', name: 'Tamil' },
+            'Telangana': { code: 'te', name: 'Telugu' },
+            'Tripura': { code: 'bng', name: 'Bengali' },
+            'Uttar Pradesh': { code: 'hi', name: 'Hindi' },
+            'Uttarakhand': { code: 'hi', name: 'Hindi' },
+            'West Bengal': { code: 'bn', name: 'Bengali' },
+            'Andaman and Nicobar Islands': { code: 'hi', name: 'Hindi' },
+            'Chandigarh': { code: 'en', name: 'English' },
+            'Dadra and Nagar Haveli and Daman and Diu': { code: 'hi', name: 'Hindi' },
+            'Lakshadweep': { code: 'ml', name: 'Malayalam' },
+            'Delhi': { code: 'hi', name: 'Hindi' },
+            'Puducherry': { code: 'ta', name: 'Tamil' },
+            'Ladakh': { code: 'hi', name: 'Hindi' },
+            'Jammu and Kashmir': { code: 'hi', name: 'Hindi' },
+            'Nagaland': { code: 'en', name: 'English' }
+          };
+
+          const detectedLanguage = languageMapping[state] || { code: 'en', name: 'English' };
+          const language = country === 'India' ? detectedLanguage : { code: 'en', name: 'English' };
+
+          document.getElementById('language').value = language.code;
+
+          document.getElementById('latitudeValue').innerText = latitude;
+          document.getElementById('longitudeValue').innerText = longitude;
+          document.getElementById('languageValue').innerText = `${language.name} `;
+        })
+        .catch(() => {
+          document.getElementById('language').value = 'en';
+          document.getElementById("languageInfo").innerHTML = `
+            <h3>Detected Information:</h3>
+            <p><strong>Region:</strong> Unknown</p>
+            <p><strong>Language:</strong> English (en)</p>
+          `;
+          alert("Could not detect the language. Defaulting to English (en).");
+        });
+    }
+
+    function playAudio() {
+      const audio = document.getElementById("audio");
+      audio.play();
+    }
+  </script>
+</body>
+</html>
