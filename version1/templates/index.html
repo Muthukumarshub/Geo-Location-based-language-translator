@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+    integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <style>
+        #document {
+          text-align:right;
+          margin-bottom: 50px;
+          padding: 10px;
+          background:linear-gradient(90deg, #007bff, #6610f2);
+          border-radius: 10px;
+          color: white;
+            text-decoration: none;
+        }
+    </style>
+  <title>Auto Translator</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Translation Service</h1>
+    <div>Enter the text you wish to translate, and provide latitude and longitude to detect the language!</div>
+    <form method="POST" id="translateForm">
+      <div class="form-group">
+        <label for="text">Text to Translate:</label>
+        <textarea name="text" cols="20" rows="5" class="form-control" id="text"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="latitude">Latitude:</label>
+        <input type="text" name="latitude" id="latitude" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="longitude">Longitude:</label>
+        <input type="text" name="longitude" id="longitude" class="form-control" required>
+      </div>
+      <input type="hidden" name="language" id="language">
+      <button type="button" class="btn btn-primary" onclick="fetchRegionLanguage()">Detect Language</button>
+      <button type="submit" class="btn btn-success">Translate!</button>
+      <a href="http://127.0.0.1:5000" id="document">Document translator</a>
+
+    </form>
+
+
+    <!-- Display the detected language and region -->
+    <div id="languageInfo" class="mt-4"></div>
+
+    <!-- Display the results if available -->
+    {% if translated_text %}
+      <div class="mt-4">
+        <h3>Translation Result:</h3>
+        <p><strong>Original Text:</strong> {{ original_text }}</p>
+        <p><strong>Translated Text:</strong> {{ translated_text }}</p>
+        <p><strong>Target Language Code:</strong> {{ target_language }}</p>
+
+      </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function fetchRegionLanguage() {
+      const latitude = document.getElementById("latitude").value;
+      const longitude = document.getElementById("longitude").value;
+
+      if (!latitude || !longitude) {
+        alert("Please enter both latitude and longitude.");
+        return;
+      }
+
+      const apiKey = '5b88d7834d6947b990eec142a73c173a';
+      const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
+
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const state = data.results[0].components.state;
+          const country = data.results[0].components.country;
+          const languageMapping = {
+  'Andhra Pradesh': { code: 'te', name: 'Telugu' },
+  'Arunachal Pradesh': { code: 'hi', name: 'Hindi' },
+  'Assam': { code: 'as', name: 'Assamese' },
+  'Bihar': { code: 'hi', name: 'Hindi' },
+  'Chhattisgarh': { code: 'hi', name: 'Hindi' },
+  'Goa': { code: 'mr', name: 'Marathi' },
+  'Gujarat': { code: 'gu', name: 'Gujarati' },
+  'Haryana': { code: 'hi', name: 'Hindi' },
+  'Himachal Pradesh': { code: 'hi', name: 'Hindi' },
+  'Jharkhand': { code: 'hi', name: 'Hindi' },
+  'Karnataka': { code: 'kn', name: 'Kannada' },
+  'Kerala': { code: 'ml', name: 'Malayalam' },
+  'Madhya Pradesh': { code: 'hi', name: 'Hindi' },
+  'Maharashtra': { code: 'mr', name: 'Marathi' },
+  'Manipur': { code: 'man', name: 'Manipuri' },
+  'Meghalaya': { code: 'en', name: 'English' },
+  'Mizoram': { code: 'en', name: 'English' },
+  'Nagaland': { code: 'en', name: 'English' },
+  'Odisha': { code: 'or', name: 'Odia' },
+  'Punjab': { code: 'pa', name: 'Punjabi' },
+  'Rajasthan': { code: 'hi', name: 'Hindi' },
+  'Sikkim': { code: 'en', name: 'English' },
+  'Tamil Nadu': { code: 'ta', name: 'Tamil' },
+  'Telangana': { code: 'te', name: 'Telugu' },
+  'Tripura': { code: 'bng', name: 'Bengali' },
+  'Uttar Pradesh': { code: 'hi', name: 'Hindi' },
+  'Uttarakhand': { code: 'hi', name: 'Hindi' },
+  'West Bengal': { code: 'bn', name: 'Bengali' },
+
+  // Union Territories
+  'Andaman and Nicobar Islands': { code: 'hi', name: 'Hindi' },
+  'Chandigarh': { code: 'en', name: 'English' },
+  'Dadra and Nagar Haveli and Daman and Diu': { code: 'hi', name: 'Hindi' },
+  'Lakshadweep': { code: 'ml', name: 'Malayalam' },
+  'Delhi': { code: 'hi', name: 'Hindi' },
+  'Puducherry': { code: 'ta', name: 'Tamil' },
+  'Ladakh': { code: 'hi', name: 'Hindi' },
+  'Jammu and Kashmir': { code: 'hi', name: 'Hindi' },
+  'Nagaland': { code: 'en', name: 'English' }
+};
+
+          const detectedLanguage = languageMapping[state] || { code: 'en', name: 'English' };
+          const language = country === 'India' ? detectedLanguage : { code: 'en', name: 'English' };
+
+          document.getElementById('language').value = language.code;
+
+          const languageInfo = `
+            <h3>Detected Information:</h3>
+            <p><strong>Region:</strong> ${state}, ${country}</p>
+            <p><strong>Language:</strong> ${language.name} (${language.code})</p>
+          `;
+          document.getElementById("languageInfo").innerHTML = languageInfo;
+        })
+        .catch(() => {
+          document.getElementById('language').value = 'en';
+          document.getElementById("languageInfo").innerHTML = `
+            <h3>Detected Information:</h3>
+            <p><strong>Region:</strong> Unknown</p>
+            <p><strong>Language:</strong> English (en)</p>
+          `;
+          alert("Could not detect the language. Defaulting to English (en).");
+        });
+    }
+  </script>
+</body>
+</html>

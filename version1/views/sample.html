@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Translator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: bold;
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #document {
+          text-align:right;
+          margin-top: 20px;
+          margin-bottom: 50px;
+          margin-left : 10px;
+          padding: 10px;
+          background:linear-gradient(90deg, #88b9ee, #c5a1ff);
+          border-radius: 10px;
+          color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <a href="http://127.0.0.1:1000" id="document">Text Translator</a>
+
+    <div class="container">
+
+        <h1>Document Translator</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <!-- File Upload -->
+            <div class="mb-3">
+                <label for="file" class="form-label">Upload Document</label>
+                <input type="file" class="form-control" id="file" name="file" accept=".txt,.pdf,.docx" required>
+            </div>
+
+            <!-- Language Dropdown -->
+            <div class="mb-3">
+                <label for="target_lang" class="form-label">Select Target Language</label>
+                <select class="form-select" id="target_lang" name="target_lang" required>
+                    <option value="" disabled selected>Select an Indian language</option>
+                    <option value="hi">Hindi</option>
+                    <option value="ta">Tamil</option>
+                    <option value="te">Telugu</option>
+                    <option value="kn">Kannada</option>
+                    <option value="ml">Malayalam</option>
+                    <option value="bn">Bengali</option>
+                    <option value="mr">Marathi</option>
+                    <option value="gu">Gujarati</option>
+                    <option value="pa">Punjabi</option>
+                    <option value="ur">Urdu</option>
+                    <option value="or">Odia</option>
+                    <option value="as">Assamese</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary">Translate</button>
+        </form>
+
+    </div>
+
+
+    <!-- Bootstrap JS (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
